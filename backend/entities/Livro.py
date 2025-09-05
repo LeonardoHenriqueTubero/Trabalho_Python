@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from datetime import date, datetime
 
-from entities.Autor import Autor
-from entities.Categoria import Categoria
-from entities.enums.Disponibilidade import Disponibilidade
+from backend.entities.Autor import Autor
+from backend.entities.Categoria import Categoria
+from backend.entities.enums.Disponibilidade import Disponibilidade
 
 
 @dataclass
@@ -14,3 +14,4 @@ class Livro:
     categoria: Categoria
     ano_publicacao: date
     disponibilidade: Disponibilidade
+    status: bool = False

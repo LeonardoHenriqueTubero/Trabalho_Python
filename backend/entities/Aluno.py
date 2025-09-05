@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 
-from entities.Curso import Curso
-from entities.Cidade import Cidade
-
+from backend.entities.Curso import Curso
+from backend.entities.Cidade import Cidade
 
 @dataclass
 class Aluno:
@@ -10,3 +9,7 @@ class Aluno:
     nome: str
     curso: Curso
     cidade: Cidade
+    status: bool = False
+
+    def excluir_dado(self):
+        self.status = True
