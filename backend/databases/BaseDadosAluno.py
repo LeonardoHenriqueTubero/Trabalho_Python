@@ -10,7 +10,7 @@ class BaseDadosAluno:
     alunos: list[Aluno]
     arvore: Arvore | None = None
 
-    def leitura(self, dados_curso: BaseDadosCurso, dados_cidades: BaseDadosCidade):
+    def leitura(self, dados_curso: BaseDadosCurso, dados_cidade: BaseDadosCidade):
         codigo = 0
         while True:
             try:
@@ -28,10 +28,10 @@ class BaseDadosAluno:
                 curso_cod = int(input("Digite novamente o codigo do curso: "))
                 curso = dados_curso.busca_elemento(curso_cod)
             cidade_cod = int(input("Digite o codigo da cidade: "))
-            cidade = dados_cidades.busca_elemento(cidade_cod)
+            cidade = dados_cidade.busca_elemento(cidade_cod)
             while cidade is None:
                 cidade_cod = int(input("Digite novamente o codigo da cidade: "))
-                cidade = dados_cidades.busca_elemento(cidade_cod)
+                cidade = dados_cidade.busca_elemento(cidade_cod)
             status = False
             novo = Aluno(codigo, nome, curso, cidade, status)
             self.alunos.append(novo)

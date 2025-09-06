@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date
 
 from backend.entities.Autor import Autor
 from backend.entities.Categoria import Categoria
@@ -15,3 +15,6 @@ class Livro:
     ano_publicacao: date
     disponibilidade: Disponibilidade
     status: bool = False
+
+    def excluir_dado(self):
+        self.status = True
