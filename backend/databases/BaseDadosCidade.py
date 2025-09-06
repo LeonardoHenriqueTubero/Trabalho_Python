@@ -1,15 +1,14 @@
 from dataclasses import dataclass
 
 from backend.entities.Arvore import Arvore
-from backend.entities.Autor import Autor
-from backend.databases.BaseDadosCidade import BaseDadosCidade
+from backend.entities.Cidade import Cidade
 
 @dataclass
-class BaseDadosAutor:
-    autores: list[Autor]
+class BaseDadosCidade:
+    cidades: list[Cidade]
     arvore: Arvore | None = None
 
-    def leitura(self, dados_cidades: BaseDadosCidade):
+    def leitura(self):
         codigo = 0
         while True:
             try:
@@ -20,29 +19,25 @@ class BaseDadosAutor:
                 print("Código inválido. Por favor, digite um número.")
                 continue
 
-            nome = input("Digite um nome: ")
-            cidade_cod = int(input("Digite o codigo da cidade: "))
-            cidade = dados_cidades.busca_elemento(cidade_cod)
-            while cidade is None:
-                cidade_cod = int(input("Digite novamente o codigo da cidade: "))
-                cidade = dados_cidades.busca_elemento(cidade_cod)
+            descricao = input("Digite uma descricao: ")
+            estado = input("Digite um estado: ")
             status = False
-            novo = Autor(codigo, nome, cidade, status)
-            self.autores.append(novo)
+            novo = Cidade(codigo, descricao, estado, status)
+            self.cidades.append(novo)
 
     def incluir_arvore(self):
         inicio = 0
-        fim = len(self.autores) - 1
+        fim = len(self.cidades) - 1
         meio = int((inicio + fim) / 2)
-        self.arvore = Arvore(self.autores[meio].cod, meio, None, None)
-        for i in range(len(self.autores)):
+        self.arvore = Arvore(self.cidades[meio].cod, meio, None, None)
+        for i in range(len(self.cidades)):
             if i != meio:
-                self.arvore.inserir(self.autores[i].cod, i)
+                self.arvore.inserir(self.cidades[i].cod, i)
 
     def busca_elemento(self, cod: int):
         busca = Arvore.busca_no(self.arvore, cod)
         if busca is not None:
-            return self.autores[busca.endereco]
+            return self.cidades[busca.endereco]
         else:
             print(f"Nó não encontrado")
             return None
@@ -50,17 +45,17 @@ class BaseDadosAutor:
     def excluir_registro(self, cod: int):
         busca = Arvore.busca_no(self.arvore, cod)
         if busca is not None:
-            self.autores[busca.endereco].excluir_dado()
+            self.cidades[busca.endereco].excluir_dado()
             print(f"O código {cod} foi excluído!")
         self.arvore = Arvore.excluir(self.arvore, cod)
 
     def metodo_bolha(self):
-        n = len(self.autores)
+        n = len(self.cidades)
         for i in range (n - 1):
             trocou = False
             for j in range (n - 1 - i):
-                if self.autores[j].cod > self.autores[j+1].cod:
-                    self.autores[j], self.autores[j + 1] = self.autores[j + 1], self.autores[j]
+                if self.cidades[j].cod > self.cidades[j+1].cod:
+                    self.cidades[j], self.cidades[j + 1] = self.cidades[j + 1], self.cidades[j]
                     trocou = True
             if not trocou:
                 break
@@ -68,9 +63,9 @@ class BaseDadosAutor:
     def leitura_exaustiva(self):
         lista = self.arvore.em_ordem_retorno()
         for i in range (len(lista)):
-            autor = self.busca_elemento(lista[i])
-            if not autor.status:
-                print(f"{autor}")
+            cidades = self.busca_elemento(lista[i])
+            if not cidades.status:
+                print(f"{cidades}")
 
     def limpar_arvore(self):
         self.arvore = None

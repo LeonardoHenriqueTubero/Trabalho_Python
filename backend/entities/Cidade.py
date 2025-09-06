@@ -7,3 +7,5 @@ class Cidade:
     estado: str
     status: bool = False
 
+    def excluir_dado(self):
+        self.status = True

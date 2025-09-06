@@ -1,12 +1,40 @@
 from dataclasses import dataclass
 
+from backend.databases.BaseDadosCidade import BaseDadosCidade
+from backend.databases.BaseDadosCurso import BaseDadosCurso
 from backend.entities.Arvore import Arvore
 from backend.entities.Aluno import Aluno
 
 @dataclass
-class BaseAlunosAluno:
+class BaseDadosAluno:
     alunos: list[Aluno]
     arvore: Arvore | None = None
+
+    def leitura(self, dados_curso: BaseDadosCurso, dados_cidades: BaseDadosCidade):
+        codigo = 0
+        while True:
+            try:
+                codigo = int(input("Digite o código (0 para sair): "))
+                if codigo == 0:
+                    break
+            except ValueError:
+                print("Código inválido. Por favor, digite um número.")
+                continue
+
+            nome = input("Digite um nome: ")
+            curso_cod = int(input("Digite o codigo do curso: "))
+            curso = dados_curso.busca_elemento(curso_cod)
+            while curso is None:
+                curso_cod = int(input("Digite novamente o codigo do curso: "))
+                curso = dados_curso.busca_elemento(curso_cod)
+            cidade_cod = int(input("Digite o codigo da cidade: "))
+            cidade = dados_cidades.busca_elemento(cidade_cod)
+            while cidade is None:
+                cidade_cod = int(input("Digite novamente o codigo da cidade: "))
+                cidade = dados_cidades.busca_elemento(cidade_cod)
+            status = False
+            novo = Aluno(codigo, nome, curso, cidade, status)
+            self.alunos.append(novo)
 
     def incluir_alunos(self, alunos: list[Aluno]):
         for i in range(len(alunos)):
