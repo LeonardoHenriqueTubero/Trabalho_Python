@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, date
 
 from backend.databases.BaseDadosAluno import BaseDadosAluno
-from backend.databases.BaseDadosCidade import BaseDadosCidade
-from backend.databases.BaseDadosCurso import BaseDadosCurso
 from backend.databases.BaseDadosLivro import BaseDadosLivro
 from backend.entities.Arvore import Arvore
 from backend.entities.Emprestimo import Emprestimo
+import pickle
+
+from backend.entities.enums.Disponibilidade import Disponibilidade
+
 
 @dataclass
 class BaseDadosEmprestimo:
@@ -14,38 +16,32 @@ class BaseDadosEmprestimo:
     arvore: Arvore | None = None
 
     def leitura(self, dados_livro: BaseDadosLivro, dados_aluno: BaseDadosAluno):
-        codigo = 0
-        while True:
-            try:
-                codigo = int(input("Digite o código (0 para sair): "))
-                if codigo == 0:
-                    break
-            except ValueError:
-                print("Código inválido. Por favor, digite um número.")
-                continue
-
-            livro_cod = int(input("Digite o codigo do livro: "))
+        codigo = self.contar_registros()
+        livro_cod = int(input("Digite o codigo do livro: "))
+        livro = dados_livro.busca_elemento(livro_cod)
+        while livro is None:
+            livro_cod = int(input("Digite novamente o codigo do livro: "))
             livro = dados_livro.busca_elemento(livro_cod)
-            while livro is None:
-                livro_cod = int(input("Digite novamente o codigo do livro: "))
-                livro = dados_livro.busca_elemento(livro_cod)
+        if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
+            print("Livro Indisponivel para Emprestimos")
+        else:
+            dados_livro.mudar_disponibilidade(livro_cod)
             aluno_cod = int(input("Digite o codigo do aluno: "))
             aluno = dados_aluno.busca_elemento(aluno_cod)
             while aluno is None:
                 aluno_cod = int(input("Digite novamente o codigo do aluno: "))
                 aluno = dados_aluno.busca_elemento(aluno_cod)
-            data_emprestimo = input("Digite a data de emprestimo: ")
-            data_retorno = input("Digite a data de retorno: ")
+            emprestimo = datetime.strptime(input("Digite a data de emprestimo: "), "%d/%m/%Y").date()
+            retorno = emprestimo + timedelta(days=7)
             devolvido = False
             status = False
-            emprestimo = datetime.strptime(data_emprestimo, "%d/%m/%Y").date()
-            retorno = datetime.strptime(data_retorno, "%d/%m/%Y").date()
             novo = Emprestimo(codigo, livro, aluno, emprestimo, retorno, devolvido, status)
             self.emprestimos.append(novo)
 
-    def incluir_emprestimos(self, emprestimos: list[Emprestimo]):
-        for i in range(len(emprestimos)):
-            self.emprestimos.append(emprestimos[i])
+        with open('data/dado_emprestimos.pkl', 'wb') as file:
+            pickle.dump(self.emprestimos, file)
+        with open('data/dado_livros.pkl', 'wb') as file:
+            pickle.dump(dados_livro, file)
 
     def incluir_arvore(self):
         inicio = 0
@@ -92,3 +88,24 @@ class BaseDadosEmprestimo:
 
     def limpar_arvore(self):
         self.arvore = None
+
+    def contar_registros(self):
+        num_cod = 1
+        for _ in self.emprestimos:
+            num_cod = num_cod + 1
+        return num_cod
+
+    def devolucao(self, dados_livros : BaseDadosLivro):
+        self.leitura_exaustiva()
+        data_atual = date.today()
+        emprestimo = self.busca_elemento(int(input("Qual emprestimo quer realizar a devolucao?")))
+
+        if emprestimo is None:
+            return
+        
+        if data_atual > emprestimo.data_devolucao:
+            print(f"O livro esta {(data_atual - emprestimo.data_devolucao).days} atrasado!")
+        emprestimo.devolvido = True
+        dados_livros.mudar_disponibilidade(emprestimo.livro.cod)
+        with open("data/dado_emprestimos.pkl", "wb") as file:
+            pickle.dump(self.emprestimos, file)

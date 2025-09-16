@@ -6,7 +6,7 @@ from backend.databases.BaseDadosCategoria import BaseDadosCategoria
 from backend.entities.Arvore import Arvore
 from backend.entities.Livro import Livro
 from backend.entities.enums.Disponibilidade import Disponibilidade
-
+import pickle
 
 @dataclass
 class BaseDadosLivro:
@@ -14,16 +14,8 @@ class BaseDadosLivro:
     arvore: Arvore | None = None
 
     def leitura(self, dados_autor: BaseDadosAutor, dados_categoria: BaseDadosCategoria):
-        codigo = 0
+        codigo = self.contar_registros()
         while True:
-            try:
-                codigo = int(input("Digite o código (0 para sair): "))
-                if codigo == 0:
-                    break
-            except ValueError:
-                print("Código inválido. Por favor, digite um número.")
-                continue
-
             titulo = input("Digite um titulo: ")
             autor_cod = int(input("Digite o codigo do autor: "))
             autor = dados_autor.busca_elemento(autor_cod)
@@ -43,6 +35,13 @@ class BaseDadosLivro:
             status = False
             novo = Livro(codigo, titulo, autor, categoria, datetime.strptime(ano_publicacao, "%d/%m/%Y").date(), disponibilidade, status)
             self.livros.append(novo)
+
+            if not self.continuar():
+                break
+            codigo = codigo + 1
+
+        with open('data/dado_livros.pkl', 'wb') as file:
+            pickle.dump(self.livros, file)
 
     def incluir_livros(self, livros: list[Livro]):
         for i in range(len(livros)):
@@ -72,6 +71,13 @@ class BaseDadosLivro:
             print(f"O código {cod} foi excluído!")
         self.arvore = Arvore.excluir(self.arvore, cod)
 
+    def mudar_disponibilidade(self, cod: int):
+        busca = Arvore.busca_no(self.arvore, cod)
+        if busca is not None:
+            if self.livros[busca.endereco].disponibilidade is Disponibilidade.DISPONIVEL:
+                self.livros[busca.endereco].disponibilidade = Disponibilidade.INDISPONIVEL
+            else:
+                self.livros[busca.endereco].disponibilidade = Disponibilidade.DISPONIVEL
 
     def metodo_bolha(self):
         n = len(self.livros)
@@ -93,3 +99,16 @@ class BaseDadosLivro:
 
     def limpar_arvore(self):
         self.arvore = None
+
+    def contar_registros(self):
+        num_cod = 1
+        for _ in self.livros:
+            num_cod = num_cod + 1
+        return num_cod
+
+    def continuar(self):
+        while True:
+            opcao = input("Continuar a leitura? (S/N): ").strip().upper()
+            if opcao in ("S", "N"):
+                return opcao == "S"
+            print("Opção inválida! Digite apenas S ou N.")

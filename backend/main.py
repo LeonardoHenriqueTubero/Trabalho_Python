@@ -19,7 +19,6 @@ if __name__ == '__main__':
         BaseDadosEmprestimo([])
     )
 
-
     print(f"===Cidades===")
     print(f"")
 
@@ -58,19 +57,3 @@ if __name__ == '__main__':
     repo.dados_categorias.leitura()
     repo.dados_categorias.incluir_arvore()
     repo.dados_categorias.leitura_exaustiva()
-
-    print(f"")
-    print(f"===Livros===")
-    print(f"")
-
-    repo.dados_livros.leitura(repo.dados_autores, repo.dados_categorias)
-    repo.dados_livros.incluir_arvore()
-    repo.dados_livros.leitura_exaustiva()
-
-    print(f"")
-    print(f"===Emprestimos===")
-    print(f"")
-
-    repo.dados_emprestimos.leitura(repo.dados_livros, repo.dados_alunos)
-    repo.dados_emprestimos.incluir_arvore()
-    repo.dados_emprestimos.leitura_exaustiva()

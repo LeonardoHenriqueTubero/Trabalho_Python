@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from backend.entities.Arvore import Arvore
 from backend.entities.Cidade import Cidade
+import pickle
 
 @dataclass
 class BaseDadosCidade:
@@ -9,21 +10,20 @@ class BaseDadosCidade:
     arvore: Arvore | None = None
 
     def leitura(self):
-        codigo = 0
+        codigo = self.contar_registros()
         while True:
-            try:
-                codigo = int(input("Digite o código (0 para sair): "))
-                if codigo == 0:
-                    break
-            except ValueError:
-                print("Código inválido. Por favor, digite um número.")
-                continue
-
             descricao = input("Digite uma descricao: ")
             estado = input("Digite um estado: ")
             status = False
             novo = Cidade(codigo, descricao, estado, status)
             self.cidades.append(novo)
+
+            if not self.continuar():
+                break
+            codigo = codigo + 1
+
+        with open('data/dado_cidades.pkl', 'wb') as file:
+            pickle.dump(self.cidades, file)
 
     def incluir_arvore(self):
         inicio = 0
@@ -69,3 +69,16 @@ class BaseDadosCidade:
 
     def limpar_arvore(self):
         self.arvore = None
+
+    def contar_registros(self):
+        num_cod = 1
+        for _ in self.cidades:
+            num_cod = num_cod + 1
+        return num_cod
+
+    def continuar(self):
+        while True:
+            opcao = input("Continuar a leitura? (S/N): ").strip().upper()
+            if opcao in ("S", "N"):
+                return opcao == "S"
+            print("Opção inválida! Digite apenas S ou N.")

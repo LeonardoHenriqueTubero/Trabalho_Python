@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from backend.entities.Arvore import Arvore
 from backend.entities.Curso import Curso
+import pickle
 
 @dataclass
 class BaseDadosCurso:
@@ -9,20 +10,19 @@ class BaseDadosCurso:
     arvore: Arvore | None = None
 
     def leitura(self):
-        codigo = 0
+        codigo = self.contar_registros()
         while True:
-            try:
-                codigo = int(input("Digite o código (0 para sair): "))
-                if codigo == 0:
-                    break
-            except ValueError:
-                print("Código inválido. Por favor, digite um número.")
-                continue
-
             descricao = input("Digite uma descricao: ")
             status = False
             novo = Curso(codigo, descricao, status)
             self.cursos.append(novo)
+
+            if not self.continuar():
+                break
+            codigo = codigo + 1
+
+        with open('data/dado_cursos.pkl', 'wb') as file:
+            pickle.dump(self.cursos, file)
 
     def incluir_arvore(self):
         inicio = 0
@@ -68,3 +68,16 @@ class BaseDadosCurso:
 
     def limpar_arvore(self):
         self.arvore = None
+
+    def contar_registros(self):
+        num_cod = 1
+        for _ in self.cursos:
+            num_cod = num_cod + 1
+        return num_cod
+
+    def continuar(self):
+        while True:
+            opcao = input("Continuar a leitura? (S/N): ").strip().upper()
+            if opcao in ("S", "N"):
+                return opcao == "S"
+            print("Opção inválida! Digite apenas S ou N.")

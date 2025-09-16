@@ -13,3 +13,6 @@ class Aluno:
 
     def excluir_dado(self):
         self.status = True
+
+    def __repr__(self):
+        return f"Id: {self.cod}, Nome:{self.nome}, Curso:{self.curso.descricao}, Cidade:{self.cidade.descricao}"
