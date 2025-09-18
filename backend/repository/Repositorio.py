@@ -34,41 +34,47 @@ class Repositorio:
     def carregar_cidades(self):
         with open('data/dado_cidades.pkl', 'rb') as file:
             self.dados_cidades.cidades = pickle.load(file)
-            self.dados_cidades.arvore = None
-            self.dados_cidades.incluir_arvore()
+        self.dados_cidades.arvore = None
+        self.dados_cidades.incluir_arvore()
 
     def carregar_cursos(self):
         with open('data/dado_cursos.pkl', 'rb') as file:
             self.dados_cursos.cursos = pickle.load(file)
-            self.dados_cursos.arvore = None
-            self.dados_cursos.incluir_arvore()
+        self.dados_cursos.arvore = None
+        self.dados_cursos.incluir_arvore()
 
     def carregar_alunos(self):
         with open('data/dado_alunos.pkl', 'rb') as file:
             self.dados_alunos.alunos = pickle.load(file)
-            self.dados_alunos.arvore = None
-            self.dados_alunos.incluir_arvore()
+        self.dados_alunos.arvore = None
+        self.dados_alunos.incluir_arvore()
 
     def carregar_autores(self):
         with open('data/dado_autores.pkl', 'rb') as file:
             self.dados_autores.autores = pickle.load(file)
-            self.dados_autores.arvore = None
-            self.dados_autores.incluir_arvore()
+        self.dados_autores.arvore = None
+        self.dados_autores.incluir_arvore()
 
     def carregar_categorias(self):
         with open('data/dado_categorias.pkl', 'rb') as file:
             self.dados_categorias.categorias = pickle.load(file)
-            self.dados_categorias.arvore = None
-            self.dados_categorias.incluir_arvore()
+        self.dados_categorias.arvore = None
+        self.dados_categorias.incluir_arvore()
 
     def carregar_livros(self):
-        with open('data/dado_livros.pkl', 'rb') as file:
-            self.dados_livros.livros = pickle.load(file)
-            self.dados_livros.arvore = None
-            self.dados_livros.incluir_arvore()
+        try:
+            with open('data/dado_livros.pkl', 'rb') as file:
+                self.dados_livros.livros = pickle.load(file)
+                self.dados_livros.arvore = None
+                self.dados_livros.incluir_arvore()
+        except FileNotFoundError:
+            self.dados_livros.livros = []
 
     def carregar_emprestimos(self):
-        with open('data/dado_emprestimos.pkl', 'rb') as file:
-            self.dados_emprestimos.emprestimos = pickle.load(file)
-            self.dados_emprestimos.arvore = None
-            self.dados_emprestimos.incluir_arvore()
+        try:
+            with open('data/dado_emprestimos.pkl', 'rb') as file:
+                self.dados_emprestimos.emprestimos = pickle.load(file)
+                self.dados_emprestimos.arvore = None
+                self.dados_emprestimos.incluir_arvore()
+        except FileNotFoundError:
+            self.dados_emprestimos.emprestimos = []

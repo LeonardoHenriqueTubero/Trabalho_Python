@@ -9,7 +9,6 @@ import pickle
 
 from backend.entities.enums.Disponibilidade import Disponibilidade
 
-
 @dataclass
 class BaseDadosEmprestimo:
     emprestimos: list[Emprestimo]
@@ -41,7 +40,7 @@ class BaseDadosEmprestimo:
         with open('data/dado_emprestimos.pkl', 'wb') as file:
             pickle.dump(self.emprestimos, file)
         with open('data/dado_livros.pkl', 'wb') as file:
-            pickle.dump(dados_livro, file)
+            pickle.dump(dados_livro.livros, file)
 
     def incluir_arvore(self):
         inicio = 0
@@ -86,6 +85,29 @@ class BaseDadosEmprestimo:
             if not emprestimo.status:
                 print(f"{emprestimo}")
 
+    def leitura_exaustiva_atrasado(self):
+        lista = self.arvore.em_ordem_retorno()
+        for i in range (len(lista)):
+            emprestimo = self.busca_elemento(lista[i])
+            if not emprestimo.status and date.today() > emprestimo.data_devolucao:
+                print(f"{emprestimo}")
+
+    def leitura_exaustiva_disponivel(self):
+        lista = self.arvore.em_ordem_retorno()
+        for i in range (len(lista)):
+            emprestimo = self.busca_elemento(lista[i])
+            if not emprestimo.status and emprestimo.devolvido is False:
+                print(f"{emprestimo}")
+
+    def qtd_emprestimo_periodo(self):
+        count = 0
+        data_inicial = datetime.strptime(input("Digite a data incial: "), "%d/%m/%Y").date()
+        data_final = datetime.strptime(input("Digite a data incial: "), "%d/%m/%Y").date()
+        for emprestimo in self.emprestimos:
+            if data_inicial <= emprestimo.data_emprestimo <= data_final:
+                count = count + 1
+        print(f"Numero de emprestimos por período: {count}")
+
     def limpar_arvore(self):
         self.arvore = None
 
@@ -95,17 +117,28 @@ class BaseDadosEmprestimo:
             num_cod = num_cod + 1
         return num_cod
 
-    def devolucao(self, dados_livros : BaseDadosLivro):
-        self.leitura_exaustiva()
-        data_atual = date.today()
-        emprestimo = self.busca_elemento(int(input("Qual emprestimo quer realizar a devolucao?")))
+    def contar_registros_disponivel(self):
+        for emprestimo in self.emprestimos:
+            if emprestimo.devolvido is False:
+                return True
+        return False
 
-        if emprestimo is None:
+    def devolucao(self, dados_livros : BaseDadosLivro):
+        if not self.contar_registros_disponivel():
             return
-        
-        if data_atual > emprestimo.data_devolucao:
-            print(f"O livro esta {(data_atual - emprestimo.data_devolucao).days} atrasado!")
-        emprestimo.devolvido = True
-        dados_livros.mudar_disponibilidade(emprestimo.livro.cod)
-        with open("data/dado_emprestimos.pkl", "wb") as file:
-            pickle.dump(self.emprestimos, file)
+        else:
+            self.leitura_exaustiva_disponivel()
+            data_atual = date.today()
+            emprestimo = self.busca_elemento(int(input("Qual emprestimo quer realizar a devolucao? ")))
+
+            if emprestimo is None and emprestimo.devolvido is True:
+                return
+
+            if data_atual > emprestimo.data_devolucao:
+                print(f"O livro esta {(data_atual - emprestimo.data_devolucao).days} dia(s) atrasado!")
+            emprestimo.devolvido = True
+            dados_livros.mudar_disponibilidade(emprestimo.livro.cod)
+            with open('data/dado_emprestimos.pkl', 'wb') as file:
+                pickle.dump(self.emprestimos, file)
+            with open('data/dado_livros.pkl', 'wb') as file:
+                pickle.dump(dados_livros.livros, file)

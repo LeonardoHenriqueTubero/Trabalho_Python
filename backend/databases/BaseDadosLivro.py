@@ -97,6 +97,13 @@ class BaseDadosLivro:
             if not livro.status:
                 print(f"{livro}")
 
+    def leitura_exaustiva_emprestados(self):
+        lista = self.arvore.em_ordem_retorno()
+        for i in range (len(lista)):
+            livro = self.busca_elemento(lista[i])
+            if not livro.status and livro.disponibilidade is Disponibilidade.INDISPONIVEL:
+                print(f"{livro}")
+
     def limpar_arvore(self):
         self.arvore = None
 
@@ -112,3 +119,17 @@ class BaseDadosLivro:
             if opcao in ("S", "N"):
                 return opcao == "S"
             print("Opção inválida! Digite apenas S ou N.")
+
+    def retornar_disponiveis(self):
+        count = 0
+        for livro in self.livros:
+            if livro.disponibilidade is Disponibilidade.DISPONIVEL:
+                count = count + 1
+        print(f"Numero de livros disponiveis: {count}")
+
+    def retornar_indisponiveis(self):
+        count = 0
+        for livro in self.livros:
+            if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
+                count = count + 1
+        print(f"Numero de livros emprestados: {count}")

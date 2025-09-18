@@ -15,7 +15,7 @@ def exibir_menu():
     print(f"| {'6':^6} | {'Consultar empréstimos':45} |")
     print(f"| {'7':^6} | {'Realizar devolução':45} |")
     print(f"| {'8':^6} | {'Consultar livros emprestados':45} |")
-    print(f"| {'9':^6} | {'Livros com devolução atrasada':45} |")
+    print(f"| {'9':^6} | {'Emprestimos com devolução atrasada':45} |")
     print(f"| {'10':^6} | {'Qtd. de livros emprestados por período':45} |")
     print("=" * 58)
 
@@ -47,6 +47,7 @@ if __name__ == "__main__":
                 repo.carregar_cidades()
                 repo.carregar_autores()
                 repo.carregar_categorias()
+                repo.carregar_livros()
                 repo.dados_livros.leitura(repo.dados_autores, repo.dados_categorias)
             case 4:
                 repo.carregar_cidades()
@@ -54,6 +55,8 @@ if __name__ == "__main__":
                 repo.carregar_categorias()
                 repo.carregar_livros()
                 repo.dados_livros.leitura_exaustiva()
+                repo.dados_livros.retornar_disponiveis()
+                repo.dados_livros.retornar_indisponiveis()
             case 5:
                 repo.carregar_cidades()
                 repo.carregar_cursos()
@@ -80,6 +83,32 @@ if __name__ == "__main__":
                 repo.carregar_livros()
                 repo.carregar_emprestimos()
                 repo.dados_emprestimos.devolucao(repo.dados_livros)
+            case 8:
+                repo.carregar_cidades()
+                repo.carregar_cursos()
+                repo.carregar_alunos()
+                repo.carregar_autores()
+                repo.carregar_categorias()
+                repo.carregar_livros()
+                repo.dados_livros.leitura_exaustiva_emprestados()
+            case 9:
+                repo.carregar_cidades()
+                repo.carregar_cursos()
+                repo.carregar_alunos()
+                repo.carregar_autores()
+                repo.carregar_categorias()
+                repo.carregar_livros()
+                repo.carregar_emprestimos()
+                repo.dados_emprestimos.leitura_exaustiva_atrasado()
+            case 10:
+                repo.carregar_cidades()
+                repo.carregar_cursos()
+                repo.carregar_alunos()
+                repo.carregar_autores()
+                repo.carregar_categorias()
+                repo.carregar_livros()
+                repo.carregar_emprestimos()
+                repo.dados_emprestimos.qtd_emprestimo_periodo()
 
         input()
         print("\n" * 50)
