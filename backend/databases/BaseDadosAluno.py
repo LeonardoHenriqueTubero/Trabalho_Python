@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 from backend.databases.BaseDadosCidade import BaseDadosCidade
 from backend.databases.BaseDadosCurso import BaseDadosCurso
 from backend.entities.Arvore import Arvore
