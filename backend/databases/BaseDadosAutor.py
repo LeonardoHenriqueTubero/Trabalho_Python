@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from rich.table import Table
 from backend.entities.Arvore import Arvore
 from backend.entities.Autor import Autor
 from backend.databases.BaseDadosCidade import BaseDadosCidade
@@ -27,7 +27,7 @@ class BaseDadosAutor:
                 break
             codigo = codigo + 1
 
-        with open('data/dado_autores.pkl', 'wb') as file:
+        with open('backend/data/dado_autores.pkl', 'wb') as file:
             pickle.dump(self.autores, file)
 
     def incluir_arvore(self):
@@ -65,12 +65,17 @@ class BaseDadosAutor:
             if not trocou:
                 break
 
-    def leitura_exaustiva(self):
+    def leitura_exaustiva(self) -> Table:
         lista = self.arvore.em_ordem_retorno()
+        table = Table(title="Autores", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Nome", justify="left", style="white")
+        table.add_column("Cidade", justify="left", style="white")
         for i in range (len(lista)):
             autor = self.busca_elemento(lista[i])
             if not autor.status:
-                print(f"{autor}")
+                table.add_row(str(autor.cod), autor.nome, autor.cidade.descricao)
+        return table
 
     def limpar_arvore(self):
         self.arvore = None

@@ -21,7 +21,7 @@ class BaseDadosCurso:
                 break
             codigo = codigo + 1
 
-        with open('data/dado_cursos.pkl', 'wb') as file:
+        with open('backend/data/dado_cursos.pkl', 'wb') as file:
             pickle.dump(self.cursos, file)
 
     def incluir_arvore(self):

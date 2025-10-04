@@ -1,59 +1,88 @@
-from backend.databases.BaseDadosAluno import BaseDadosAluno
-from backend.databases.BaseDadosAutor import BaseDadosAutor
-from backend.databases.BaseDadosCategoria import BaseDadosCategoria
-from backend.databases.BaseDadosCidade import BaseDadosCidade
-from backend.databases.BaseDadosCurso import BaseDadosCurso
-from backend.databases.BaseDadosEmprestimo import BaseDadosEmprestimo
-from backend.databases.BaseDadosLivro import BaseDadosLivro
-from backend.repository.Repositorio import Repositorio
+from rich.console import Console
+from rich.table import Table
+import questionary
 
-if __name__ == '__main__':
+console = Console()
 
-    repo = Repositorio(
-        BaseDadosAutor([]),
-        BaseDadosCidade([]),
-        BaseDadosCurso([]),
-        BaseDadosAluno([]),
-        BaseDadosCategoria([]),
-        BaseDadosLivro([]),
-        BaseDadosEmprestimo([])
-    )
+def mostrar_tabela():
+    # Criando a tabela
+    table = Table(title="Exemplo de Tabela com Rich")
 
-    print(f"===Cidades===")
-    print(f"")
+    table.add_column("ID", justify="center", style="cyan", no_wrap=True)
+    table.add_column("Nome", style="magenta")
+    table.add_column("Idade", justify="right", style="green")
 
-    repo.dados_cidades.leitura()
-    repo.dados_cidades.incluir_arvore()
-    repo.dados_cidades.leitura_exaustiva()
+    # Dados de exemplo
+    pessoas = [
+        {"id": "1", "nome": "Alice", "idade": 25},
+        {"id": "2", "nome": "Bob", "idade": 30},
+        {"id": "3", "nome": "Charlie", "idade": 22},
+    ]
 
-    print(f"")
-    print(f"===Cursos===")
-    print(f"")
+    for pessoa in pessoas:
+        table.add_row(pessoa["id"], pessoa["nome"], str(pessoa["idade"]))
 
-    repo.dados_cursos.leitura()
-    repo.dados_cursos.incluir_arvore()
-    repo.dados_cursos.leitura_exaustiva()
+    console.print(table)
 
-    print(f"")
-    print(f"===Alunos===")
-    print(f"")
+def main():
+    while True:
+        escolha = questionary.select(
+            "O que deseja fazer?",
+            choices=[
+                "Mostrar tabela",
+                "Adicionar pessoa",
+                "Sair"
+            ]
+        ).ask()
 
-    repo.dados_alunos.leitura(repo.dados_cursos, repo.dados_cidades)
-    repo.dados_alunos.incluir_arvore()
-    repo.dados_alunos.leitura_exaustiva()
+        if escolha == "Mostrar tabela":
+            mostrar_tabela()
 
-    print(f"")
-    print(f"===Autor===")
-    print(f"")
+        elif escolha == "Adicionar pessoa":
+            nome = questionary.text("Digite o nome:").ask()
+            idade = questionary.text(
+                "Digite a idade:",
+                validate=lambda val: val.isdigit() or "Digite um número válido"
+            ).ask()
+            console.print(f"[bold green]Pessoa adicionada:[/] {nome}, {idade} anos!")
 
-    repo.dados_autores.leitura(repo.dados_cidades)
-    repo.dados_autores.incluir_arvore()
-    repo.dados_autores.leitura_exaustiva()
+        elif escolha == "Sair":
+            console.print("[bold red]Saindo do programa...[/]")
+            break
 
-    print(f"")
-    print(f"===Categorias===")
-    print(f"")
+def main1():
+    print("=== Bem-vindo ao Menu Interativo ===")
 
-    repo.dados_categorias.leitura()
-    repo.dados_categorias.incluir_arvore()
-    repo.dados_categorias.leitura_exaustiva()
+    # Pergunta de seleção
+    escolha = questionary.select(
+        "O que você quer fazer?",
+        choices=[
+            "Dizer Olá",
+            "Somar dois números",
+            "Sair"
+        ]
+    ).ask()
+
+    if escolha == "Dizer Olá":
+        nome = questionary.text("Qual é o seu nome?").ask()
+        print(f"Olá, {nome}!")
+
+    elif escolha == "Somar dois números":
+        n1 = questionary.text("Digite o primeiro número:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+        n2 = questionary.text("Digite o segundo número:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+        print(f"A soma é: {int(n1) + int(n2)}")
+
+    elif escolha == "Sair":
+        print("Tchau!")
+        return
+
+    # Pergunta se quer continuar
+    continuar = questionary.confirm("Quer continuar?").ask()
+    if continuar:
+        main()
+    else:
+        print("Programa encerrado.")
+
+if __name__ == "__main__":
+    main()
+    main1()

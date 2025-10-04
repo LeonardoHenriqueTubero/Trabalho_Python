@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-
+from rich.table import Table
 
 from backend.databases.BaseDadosCidade import BaseDadosCidade
 from backend.databases.BaseDadosCurso import BaseDadosCurso
@@ -34,7 +34,7 @@ class BaseDadosAluno:
                 break
             codigo = codigo + 1
 
-        with open('data/dado_alunos.pkl', 'wb') as file:
+        with open('backend/data/dado_alunos.pkl', 'wb') as file:
             pickle.dump(self.alunos, file)
 
     def incluir_alunos(self, alunos: list[Aluno]):
@@ -77,12 +77,18 @@ class BaseDadosAluno:
             if not trocou:
                 break
 
-    def leitura_exaustiva(self):
+    def leitura_exaustiva(self) -> Table:
         lista = self.arvore.em_ordem_retorno()
+        table = Table(title="Alunos", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Nome", justify="left", style="white")
+        table.add_column("Curso", justify="left", style="white")
+        table.add_column("Cidade", justify="left", style="white")
         for i in range (len(lista)):
             aluno = self.busca_elemento(lista[i])
             if not aluno.status:
-                print(f"{aluno}")
+                table.add_row(str(aluno.cod), aluno.nome, aluno.curso.descricao, aluno.cidade.descricao)
+        return table
 
     def limpar_arvore(self):
         self.arvore = None

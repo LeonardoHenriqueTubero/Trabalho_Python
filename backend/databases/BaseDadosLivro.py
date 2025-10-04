@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+import questionary
+from rich.table import Table
 from backend.databases.BaseDadosAutor import BaseDadosAutor
 from backend.databases.BaseDadosCategoria import BaseDadosCategoria
 from backend.entities.Arvore import Arvore
@@ -16,19 +18,19 @@ class BaseDadosLivro:
     def leitura(self, dados_autor: BaseDadosAutor, dados_categoria: BaseDadosCategoria):
         codigo = self.contar_registros()
         while True:
-            titulo = input("Digite um titulo: ")
-            autor_cod = int(input("Digite o codigo do autor: "))
-            autor = dados_autor.busca_elemento(autor_cod)
+            titulo = questionary.text("Digite o titulo:").ask()
+            autor_cod = questionary.text("Digite o codigo do autor:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+            autor = dados_autor.busca_elemento(int(autor_cod))
             while autor is None:
-                autor_cod = int(input("Digite novamente o codigo do autor: "))
-                autor = dados_autor.busca_elemento(autor_cod)
-            categoria_cod = int(input("Digite o codigo da categoria: "))
-            categoria = dados_categoria.busca_elemento(categoria_cod)
+                autor_cod = questionary.text("Digite novamente o codigo do autor:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+                autor = dados_autor.busca_elemento(int(autor_cod))
+            categoria_cod = questionary.text("Digite o codigo da categoria:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+            categoria = dados_categoria.busca_elemento(int(categoria_cod))
             while categoria is None:
-                categoria_cod = int(input("Digite novamente o codigo da categoria: "))
-                categoria = dados_categoria.busca_elemento(categoria_cod)
-            ano_publicacao = input("Digite a data de publicacao: ")
-            disponivel = input("Está disponível (S/N)? ")
+                categoria_cod = questionary.text("Digite o codigo da categoria:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+                categoria = dados_categoria.busca_elemento(int(categoria_cod))
+            ano_publicacao = questionary.text("Digite a data de publicacao:").ask()
+            disponivel = questionary.text("Digite a disponibilidade:").ask()
             disponibilidade = Disponibilidade.INDISPONIVEL
             if str.upper(disponivel) == "S":
                 disponibilidade = Disponibilidade.DISPONIVEL
@@ -36,11 +38,12 @@ class BaseDadosLivro:
             novo = Livro(codigo, titulo, autor, categoria, datetime.strptime(ano_publicacao, "%d/%m/%Y").date(), disponibilidade, status)
             self.livros.append(novo)
 
-            if not self.continuar():
+            continuar = questionary.confirm("Quer continuar?").ask()
+            if not continuar:
                 break
             codigo = codigo + 1
 
-        with open('data/dado_livros.pkl', 'wb') as file:
+        with open('backend/data/dado_livros.pkl', 'wb') as file:
             pickle.dump(self.livros, file)
 
     def incluir_livros(self, livros: list[Livro]):
@@ -48,6 +51,8 @@ class BaseDadosLivro:
             self.livros.append(livros[i])
 
     def incluir_arvore(self):
+        if not self.livros:
+            return
         inicio = 0
         fim = len(self.livros) - 1
         meio = int((inicio + fim) / 2)
@@ -90,19 +95,63 @@ class BaseDadosLivro:
             if not trocou:
                 break
 
-    def leitura_exaustiva(self):
+    def leitura_exaustiva(self) -> Table | None:
+        if not self.livros:
+            return None
         lista = self.arvore.em_ordem_retorno()
-        for i in range (len(lista)):
+        table = Table(title="Autores", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Titulo", justify="left", style="white")
+        table.add_column("Ano de Publicacao", justify="left", style="white")
+        table.add_column("Autor", justify="left", style="white")
+        table.add_column("Cidade", justify="left", style="white")
+        table.add_column("Estado", justify="left", style="white")
+        table.add_column("Categoria", justify="left", style="white")
+        table.add_column("Disponibilidade", justify="left", style="white")
+
+        for i in range(len(lista)):
             livro = self.busca_elemento(lista[i])
             if not livro.status:
-                print(f"{livro}")
+                table.add_row(
+                    str(livro.cod),
+                    livro.titulo,
+                    str(livro.ano_publicacao),
+                    livro.autor.nome,
+                    livro.autor.cidade.descricao,
+                    livro.autor.cidade.estado,
+                    livro.categoria.descricao,
+                    livro.disponibilidade.name
+                )
+        return table
 
-    def leitura_exaustiva_emprestados(self):
+    def leitura_exaustiva_emprestados(self) -> Table | None:
+        if not self.livros:
+            return
         lista = self.arvore.em_ordem_retorno()
+        table = Table(title="Livros Emprestados", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Titulo", justify="left", style="white")
+        table.add_column("Ano de Publicacao", justify="left", style="white")
+        table.add_column("Autor", justify="left", style="white")
+        table.add_column("Cidade", justify="left", style="white")
+        table.add_column("Estado", justify="left", style="white")
+        table.add_column("Categoria", justify="left", style="white")
+        table.add_column("Disponibilidade", justify="left", style="white")
+
         for i in range (len(lista)):
             livro = self.busca_elemento(lista[i])
             if not livro.status and livro.disponibilidade is Disponibilidade.INDISPONIVEL:
-                print(f"{livro}")
+                table.add_row(
+                    str(livro.cod),
+                    livro.titulo,
+                    str(livro.ano_publicacao),
+                    livro.autor.nome,
+                    livro.autor.cidade.descricao,
+                    livro.autor.cidade.estado,
+                    livro.categoria.descricao,
+                    livro.disponibilidade.name
+                )
+        return table
 
     def limpar_arvore(self):
         self.arvore = None
@@ -113,23 +162,16 @@ class BaseDadosLivro:
             num_cod = num_cod + 1
         return num_cod
 
-    def continuar(self):
-        while True:
-            opcao = input("Continuar a leitura? (S/N): ").strip().upper()
-            if opcao in ("S", "N"):
-                return opcao == "S"
-            print("Opção inválida! Digite apenas S ou N.")
-
-    def retornar_disponiveis(self):
+    def retornar_disponiveis(self) -> int:
         count = 0
         for livro in self.livros:
             if livro.disponibilidade is Disponibilidade.DISPONIVEL:
                 count = count + 1
-        print(f"Numero de livros disponiveis: {count}")
+        return count
 
-    def retornar_indisponiveis(self):
+    def retornar_indisponiveis(self) -> int:
         count = 0
         for livro in self.livros:
             if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
                 count = count + 1
-        print(f"Numero de livros emprestados: {count}")
+        return count

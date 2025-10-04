@@ -1,6 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, date
 
+import questionary
+from questionary import Choice
+from rich.console import Console
+from rich.table import Table
+
 from backend.databases.BaseDadosAluno import BaseDadosAluno
 from backend.databases.BaseDadosLivro import BaseDadosLivro
 from backend.entities.Arvore import Arvore
@@ -9,6 +14,8 @@ import pickle
 
 from backend.entities.enums.Disponibilidade import Disponibilidade
 
+console = Console(force_terminal=True)
+
 @dataclass
 class BaseDadosEmprestimo:
     emprestimos: list[Emprestimo]
@@ -16,30 +23,30 @@ class BaseDadosEmprestimo:
 
     def leitura(self, dados_livro: BaseDadosLivro, dados_aluno: BaseDadosAluno):
         codigo = self.contar_registros()
-        livro_cod = int(input("Digite o codigo do livro: "))
-        livro = dados_livro.busca_elemento(livro_cod)
+        livro_cod = int(questionary.text("Digite o codigo do livro:", validate=lambda val: val.isdigit() or "Digite um número válido").ask())
+        livro = dados_livro.busca_elemento(int(livro_cod))
         while livro is None:
-            livro_cod = int(input("Digite novamente o codigo do livro: "))
-            livro = dados_livro.busca_elemento(livro_cod)
+            livro_cod = questionary.text("Digite novamente o codigo do livro:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+            livro = dados_livro.busca_elemento(int(livro_cod))
         if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
-            print("Livro Indisponivel para Emprestimos")
+            console.print(f"[bold red]!Livro Indisponivel para Emprestimos!")
         else:
             dados_livro.mudar_disponibilidade(livro_cod)
-            aluno_cod = int(input("Digite o codigo do aluno: "))
-            aluno = dados_aluno.busca_elemento(aluno_cod)
+            aluno_cod = questionary.text("Digite o codigo do aluno:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+            aluno = dados_aluno.busca_elemento(int(aluno_cod))
             while aluno is None:
-                aluno_cod = int(input("Digite novamente o codigo do aluno: "))
+                aluno_cod = questionary.text("Digite novamente o codigo do aluno:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
                 aluno = dados_aluno.busca_elemento(aluno_cod)
-            emprestimo = datetime.strptime(input("Digite a data de emprestimo: "), "%d/%m/%Y").date()
+            emprestimo = date.today()
             retorno = emprestimo + timedelta(days=7)
             devolvido = False
             status = False
             novo = Emprestimo(codigo, livro, aluno, emprestimo, retorno, devolvido, status)
             self.emprestimos.append(novo)
 
-        with open('data/dado_emprestimos.pkl', 'wb') as file:
+        with open('backend/data/dado_emprestimos.pkl', 'wb') as file:
             pickle.dump(self.emprestimos, file)
-        with open('data/dado_livros.pkl', 'wb') as file:
+        with open('backend/data/dado_livros.pkl', 'wb') as file:
             pickle.dump(dados_livro.livros, file)
 
     def incluir_arvore(self):
@@ -78,35 +85,86 @@ class BaseDadosEmprestimo:
             if not trocou:
                 break
 
-    def leitura_exaustiva(self):
+    def leitura_exaustiva(self) -> Table | None:
+        if not self.emprestimos:
+            return None
         lista = self.arvore.em_ordem_retorno()
+        table = Table(title="Emprestimos", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Livro", justify="left", style="white")
+        table.add_column("Aluno", justify="left", style="white")
+        table.add_column("Data Emprestimo", justify="left", style="white")
+        table.add_column("Data Devolucao", justify="left", style="white")
+        table.add_column("Devolvido", justify="left", style="white")
         for i in range (len(lista)):
             emprestimo = self.busca_elemento(lista[i])
             if not emprestimo.status:
-                print(f"{emprestimo}")
+                table.add_row(
+                    str(emprestimo.cod),
+                    emprestimo.livro.titulo,
+                    emprestimo.aluno.nome,
+                    emprestimo.data_emprestimo.strftime('%d/%m/%Y'),
+                    emprestimo.data_devolucao.strftime('%d/%m/%Y'),
+                    'SIM' if emprestimo.devolvido is True else 'NAO'
+                )
+        return table
 
-    def leitura_exaustiva_atrasado(self):
+    def leitura_exaustiva_atrasado(self) -> Table | None:
+        if not self.emprestimos:
+            return None
         lista = self.arvore.em_ordem_retorno()
+        table = Table(title="Emprestimos", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Livro", justify="left", style="white")
+        table.add_column("Aluno", justify="left", style="white")
+        table.add_column("Data Emprestimo", justify="left", style="white")
+        table.add_column("Data Devolucao", justify="left", style="white")
+        table.add_column("Devolvido", justify="left", style="white")
         for i in range (len(lista)):
             emprestimo = self.busca_elemento(lista[i])
             if not emprestimo.status and date.today() > emprestimo.data_devolucao:
-                print(f"{emprestimo}")
+                table.add_row(
+                    str(emprestimo.cod),
+                    emprestimo.livro.titulo,
+                    emprestimo.aluno.nome,
+                    emprestimo.data_emprestimo.strftime('%d/%m/%Y'),
+                    emprestimo.data_devolucao.strftime('%d/%m/%Y'),
+                    'SIM' if emprestimo.devolvido is True else 'NAO'
+                )
+        return table
 
-    def leitura_exaustiva_disponivel(self):
+    def leitura_exaustiva_disponivel(self) -> list[str] | None:
+        if not self.emprestimos:
+            return None
         lista = self.arvore.em_ordem_retorno()
+        table = Table(title="Emprestimos", style="bold cyan")
+        table.add_column("Id", justify="center", style="bold yellow")
+        table.add_column("Livro", justify="left", style="white")
+        table.add_column("Aluno", justify="left", style="white")
+        table.add_column("Data Emprestimo", justify="left", style="white")
+        table.add_column("Data Devolucao", justify="left", style="white")
+        table.add_column("Devolvido", justify="left", style="white")
+        emprestimos_disponiveis = []
         for i in range (len(lista)):
             emprestimo = self.busca_elemento(lista[i])
             if not emprestimo.status and emprestimo.devolvido is False:
-                print(f"{emprestimo}")
+                emprestimo_disponivel = {
+                    "id": emprestimo.cod,
+                    "titulo_livro": emprestimo.livro.titulo
+                }
+                emprestimos_disponiveis.append(emprestimo_disponivel)
+        return emprestimos_disponiveis
 
     def qtd_emprestimo_periodo(self):
         count = 0
-        data_inicial = datetime.strptime(input("Digite a data incial: "), "%d/%m/%Y").date()
-        data_final = datetime.strptime(input("Digite a data incial: "), "%d/%m/%Y").date()
+        data_inicial_str = questionary.text("Digite a data inicial:").ask()
+        data_final_str = questionary.text("Digite a data final").ask()
+        data_inicial = datetime.strptime(data_inicial_str, "%d/%m/%Y").date()
+        data_final = datetime.strptime(data_final_str, "%d/%m/%Y").date()
         for emprestimo in self.emprestimos:
             if data_inicial <= emprestimo.data_emprestimo <= data_final:
                 count = count + 1
-        print(f"Numero de emprestimos por período: {count}")
+        console.print(f"[bold yellow]Numero de emprestimos por período: {count}")
 
     def limpar_arvore(self):
         self.arvore = None
@@ -127,18 +185,20 @@ class BaseDadosEmprestimo:
         if not self.contar_registros_disponivel():
             return
         else:
-            self.leitura_exaustiva_disponivel()
             data_atual = date.today()
-            emprestimo = self.busca_elemento(int(input("Qual emprestimo quer realizar a devolucao? ")))
+            emprestimo = self.busca_elemento(int(questionary.select(
+                "Qual emprestimo quer realizar a devolucao?",
+            choices=[Choice(title=e["titulo_livro"], value=e["id"])
+                     for e in self.leitura_exaustiva_disponivel()]).ask()))
 
             if emprestimo is None and emprestimo.devolvido is True:
                 return
 
             if data_atual > emprestimo.data_devolucao:
-                print(f"O livro esta {(data_atual - emprestimo.data_devolucao).days} dia(s) atrasado!")
+                console.print(f"O livro esta [bold red]{(data_atual - emprestimo.data_devolucao).days}[/bold red] dia(s) atrasado!")
             emprestimo.devolvido = True
             dados_livros.mudar_disponibilidade(emprestimo.livro.cod)
-            with open('data/dado_emprestimos.pkl', 'wb') as file:
+            with open('backend/data/dado_emprestimos.pkl', 'wb') as file:
                 pickle.dump(self.emprestimos, file)
-            with open('data/dado_livros.pkl', 'wb') as file:
+            with open('backend/data/dado_livros.pkl', 'wb') as file:
                 pickle.dump(dados_livros.livros, file)

@@ -21,7 +21,7 @@ class BaseDadosCategoria:
                 break
             codigo = codigo + 1
 
-        with open('data/dado_categorias.pkl', 'wb') as file:
+        with open('backend/data/dado_categorias.pkl', 'wb') as file:
             pickle.dump(self.categorias, file)
 
     def incluir_arvore(self):

@@ -22,7 +22,7 @@ class BaseDadosCidade:
                 break
             codigo = codigo + 1
 
-        with open('data/dado_cidades.pkl', 'wb') as file:
+        with open('backend/data/dado_cidades.pkl', 'wb') as file:
             pickle.dump(self.cidades, file)
 
     def incluir_arvore(self):
