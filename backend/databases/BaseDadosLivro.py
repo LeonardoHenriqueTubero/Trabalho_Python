@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -29,8 +30,8 @@ class BaseDadosLivro:
             while categoria is None:
                 categoria_cod = questionary.text("Digite o codigo da categoria:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
                 categoria = dados_categoria.busca_elemento(int(categoria_cod))
-            ano_publicacao = questionary.text("Digite a data de publicacao:").ask()
-            disponivel = questionary.text("Digite a disponibilidade:").ask()
+            ano_publicacao = questionary.text("Digite a data de publicacao (dd/mm/aaaa):", validate=self.validar_data).ask()
+            disponivel = questionary.text("Digite a disponibilidade (S/N):").ask()
             disponibilidade = Disponibilidade.INDISPONIVEL
             if str.upper(disponivel) == "S":
                 disponibilidade = Disponibilidade.DISPONIVEL
@@ -175,3 +176,9 @@ class BaseDadosLivro:
             if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
                 count = count + 1
         return count
+
+    def validar_data(self, valor):
+        padrao = r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$'
+        if re.match(padrao, valor):
+            return True
+        return "Data inalida! Use o formato dd/mm/aaaa."

@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, date
 
@@ -22,27 +23,30 @@ class BaseDadosEmprestimo:
     arvore: Arvore | None = None
 
     def leitura(self, dados_livro: BaseDadosLivro, dados_aluno: BaseDadosAluno):
-        codigo = self.contar_registros()
-        livro_cod = int(questionary.text("Digite o codigo do livro:", validate=lambda val: val.isdigit() or "Digite um número válido").ask())
-        livro = dados_livro.busca_elemento(int(livro_cod))
-        while livro is None:
-            livro_cod = questionary.text("Digite novamente o codigo do livro:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
-            livro = dados_livro.busca_elemento(int(livro_cod))
-        if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
-            console.print(f"[bold red]!Livro Indisponivel para Emprestimos!")
+        if not dados_livro.livros:
+            console.print(f"[bold red]!Nenhum livro cadastrado!")
         else:
-            dados_livro.mudar_disponibilidade(livro_cod)
-            aluno_cod = questionary.text("Digite o codigo do aluno:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
-            aluno = dados_aluno.busca_elemento(int(aluno_cod))
-            while aluno is None:
-                aluno_cod = questionary.text("Digite novamente o codigo do aluno:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
-                aluno = dados_aluno.busca_elemento(aluno_cod)
-            emprestimo = date.today()
-            retorno = emprestimo + timedelta(days=7)
-            devolvido = False
-            status = False
-            novo = Emprestimo(codigo, livro, aluno, emprestimo, retorno, devolvido, status)
-            self.emprestimos.append(novo)
+            codigo = self.contar_registros()
+            livro_cod = int(questionary.text("Digite o codigo do livro:", validate=lambda val: val.isdigit() or "Digite um número válido").ask())
+            livro = dados_livro.busca_elemento(int(livro_cod))
+            while livro is None:
+                livro_cod = questionary.text("Digite novamente o codigo do livro:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+                livro = dados_livro.busca_elemento(int(livro_cod))
+            if livro.disponibilidade is Disponibilidade.INDISPONIVEL:
+                console.print(f"[bold red]!Livro Indisponivel para Emprestimos!")
+            else:
+                dados_livro.mudar_disponibilidade(livro_cod)
+                aluno_cod = questionary.text("Digite o codigo do aluno:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+                aluno = dados_aluno.busca_elemento(int(aluno_cod))
+                while aluno is None:
+                    aluno_cod = questionary.text("Digite novamente o codigo do aluno:", validate=lambda val: val.isdigit() or "Digite um número válido").ask()
+                    aluno = dados_aluno.busca_elemento(aluno_cod)
+                emprestimo = date.today()
+                retorno = emprestimo + timedelta(days=7)
+                devolvido = False
+                status = False
+                novo = Emprestimo(codigo, livro, aluno, emprestimo, retorno, devolvido, status)
+                self.emprestimos.append(novo)
 
         with open('backend/data/dado_emprestimos.pkl', 'wb') as file:
             pickle.dump(self.emprestimos, file)
@@ -157,8 +161,8 @@ class BaseDadosEmprestimo:
 
     def qtd_emprestimo_periodo(self):
         count = 0
-        data_inicial_str = questionary.text("Digite a data inicial:").ask()
-        data_final_str = questionary.text("Digite a data final").ask()
+        data_inicial_str = questionary.text("Digite a data inicial (dd/mm/aaaa):", validate=self.validar_data).ask()
+        data_final_str = questionary.text("Digite a data final (dd/mm/aaaa):", validate=self.validar_data).ask()
         data_inicial = datetime.strptime(data_inicial_str, "%d/%m/%Y").date()
         data_final = datetime.strptime(data_final_str, "%d/%m/%Y").date()
         for emprestimo in self.emprestimos:
@@ -202,3 +206,9 @@ class BaseDadosEmprestimo:
                 pickle.dump(self.emprestimos, file)
             with open('backend/data/dado_livros.pkl', 'wb') as file:
                 pickle.dump(dados_livros.livros, file)
+
+    def validar_data(self, valor):
+        padrao = r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$'
+        if re.match(padrao, valor):
+            return True
+        return "Data inalida! Use o formato dd/mm/aaaa."
