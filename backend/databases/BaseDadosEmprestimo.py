@@ -160,6 +160,8 @@ class BaseDadosEmprestimo:
         return emprestimos_disponiveis
 
     def qtd_emprestimo_periodo(self):
+        if not self.emprestimos:
+            return
         count = 0
         data_inicial_str = questionary.text("Digite a data inicial (dd/mm/aaaa):", validate=self.validar_data).ask()
         data_final_str = questionary.text("Digite a data final (dd/mm/aaaa):", validate=self.validar_data).ask()
