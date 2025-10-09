@@ -141,13 +141,6 @@ class BaseDadosEmprestimo:
         if not self.emprestimos:
             return None
         lista = self.arvore.em_ordem_retorno()
-        table = Table(title="Emprestimos", style="bold cyan")
-        table.add_column("Id", justify="center", style="bold yellow")
-        table.add_column("Livro", justify="left", style="white")
-        table.add_column("Aluno", justify="left", style="white")
-        table.add_column("Data Emprestimo", justify="left", style="white")
-        table.add_column("Data Devolucao", justify="left", style="white")
-        table.add_column("Devolvido", justify="left", style="white")
         emprestimos_disponiveis = []
         for i in range (len(lista)):
             emprestimo = self.busca_elemento(lista[i])
