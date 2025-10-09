@@ -103,7 +103,7 @@ if __name__ == "__main__":
                 repo.carregar_categorias()
                 repo.carregar_livros()
                 livros_emprestados = repo.dados_livros.leitura_exaustiva_emprestados()
-                console.print(livros_empresta)
+                console.print(livros_emprestados)
             case "Empréstimos com devolução atrasada":
                 repo.carregar_cidades()
                 repo.carregar_cursos()
